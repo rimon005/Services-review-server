@@ -22,6 +22,9 @@ const run = async () => {
         const serviceCollection = client.db("review").collection("services");
         const reviewCollection = client.db("review").collection("reviews")
 
+
+
+        // allServices
         app.get('/allServices', async (req, res) => {
             const query = {};
             const cursor = serviceCollection.find(query);
@@ -29,12 +32,18 @@ const run = async () => {
             res.send(services)
         })
 
+        // limited 3 service 
+
         app.get('/services', async (req, res) => {
             const query = {};
             const cursor = serviceCollection.find(query);
             const services = await cursor.limit(3).toArray();
             res.send(services)
         })
+
+
+        // find one item
+
 
         app.get('/services/:id', async (req, res) => {
             const id = req.params.id;
@@ -44,18 +53,35 @@ const run = async () => {
         })
 
 
+        // find review by email
 
-        app.get('/reviews' , async(req , res) => {
-           let query = {};
-           if(req.query.service_id){
-            query = {
-                service_id: req.query.service_id
+        app.get('/reviews' , async (req , res ) => {
+            let query = {};
+            if(req.query.email) {
+                query = {
+                    email : req.query.email
+                }
             }
-           }
-           const cursor = reviewCollection.find(query);
-           const reviews = await cursor.toArray();
-           res.send(reviews)
+            const cursor = reviewCollection.find(query);
+            const reviews = await cursor.toArray();
+            res.send(reviews)
         })
+
+        // find review by services id 
+
+        app.get('/review' , async(req , res) => {
+            let query = {};
+            // console.log(query);
+            if(req.query.service_id){
+             query = {
+                 service_id: req.query.service_id
+             }
+            }
+            const cursor = reviewCollection.find(query);
+            const reviews = await cursor.toArray();
+            console.log(reviews);
+            res.send(reviews)
+         })
 
         // post 
 
