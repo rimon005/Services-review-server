@@ -1,9 +1,9 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 require('dotenv').config()
-
 
 // middleWare
 
@@ -12,6 +12,25 @@ app.use(express.json())
 
 // port 
 const port = process.env.PORT || 5000;
+
+
+// jwt token
+
+
+function verifyJWT (req , res , next){
+    const authHeader = req.headers.authorization;
+    if(!authorization){
+        return res.status(401).send({message : "unauthorized"})
+    }
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token , process.env.ACCESS_TOKEN_SECRET, function(err , decoded){
+        if(err){
+            res.status(401).send({message : "unauthorized"})
+        }
+        req.decoded= decoded;
+        next()
+    })
+}
 
 // DateBase mongo DB
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.wkops72.mongodb.net/?retryWrites=true&w=majority`;
@@ -55,7 +74,13 @@ const run = async () => {
 
         // find review by email
 
-        app.get('/reviews' , async (req , res ) => {
+        app.get('/reviews' ,verifyJWT, async (req , res ) => {
+            
+            const decoded = req.decoded;
+            if(decoded.email !== req.query.email){
+                return res.status(403).send({message : "unauthorized"})
+            }
+            
             let query = {};
             if(req.query.email) {
                 query = {
@@ -65,6 +90,13 @@ const run = async () => {
             const cursor = reviewCollection.find(query);
             const reviews = await cursor.toArray();
             res.send(reviews)
+        })
+
+        // jwt post 
+        app.post('/jwt' , (req , res) => {
+            const user = req.body;
+            const token = jwt.sign(user , process.env.ACCESS_TOKEN_SECRET , {expiresIn : "1d"})
+            res.send({token})
         })
 
         // find review by services id 
@@ -79,7 +111,7 @@ const run = async () => {
             }
             const cursor = reviewCollection.find(query);
             const reviews = await cursor.toArray();
-            console.log(reviews);
+            // console.log(reviews);
             res.send(reviews)
          })
 
