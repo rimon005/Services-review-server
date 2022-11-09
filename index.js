@@ -19,7 +19,7 @@ const port = process.env.PORT || 5000;
 
 function verifyJWT (req , res , next){
     const authHeader = req.headers.authorization;
-    if(!authorization){
+    if(!authHeader){
         return res.status(401).send({message : "unauthorized"})
     }
     const token = authHeader.split(' ')[1];
@@ -28,7 +28,7 @@ function verifyJWT (req , res , next){
             res.status(401).send({message : "unauthorized"})
         }
         req.decoded= decoded;
-        next()
+        next();
     })
 }
 
@@ -77,6 +77,7 @@ const run = async () => {
         app.get('/reviews' ,verifyJWT, async (req , res ) => {
             
             const decoded = req.decoded;
+            console.log(decoded);
             if(decoded.email !== req.query.email){
                 return res.status(403).send({message : "unauthorized"})
             }
